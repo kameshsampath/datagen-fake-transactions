@@ -1,7 +1,44 @@
 services:
-  kakfa:
+  kafka:
     image: apache/kafka-native:3.9.0
+    hostname: kafka
+    container_name: kafka
     ports:
       - "9092:9092"
+      - "9093:9093"
     environment:
-      - KAFKA_CREATE_TOPICS="transactions:1:1"
+      CLUSTER_ID: "KaJwTnUyQ6qRwN5WbemE4w"
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      # Configure multiple listeners for both internal and external access
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:29092"
+      # Advertise both external and internal addresses
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092,INTERNAL://kafka:29092"
+      # Define security protocols for all listeners
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_NODE_ROLE: "controller+broker"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # Tell Kafka which listener to use for inter-broker communication
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/tmp/kraft-combined-logs
+  generator:
+    # image: ghcr.io/kameshsampath/datagen-cc-transactions
+    build:
+      context: .
+    environment:
+      - APP_LOG_LEVEL=DEBUG
+    depends_on:
+      - kafka
+    entrypoint:
+      - /app/bin/entrypoint
+    command:
+      - "--num-transactions=-1"
+      - "--bootstrap-servers=kafka:29092"
+      - "--delay=1"
+
+volumes:
+  kafka-data:
