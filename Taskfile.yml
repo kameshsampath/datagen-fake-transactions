@@ -1,0 +1,18 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GENERATOR_IMAGE: ghcr.io/kameshsampath/datagen-fake-transactions/generator
+
+tasks:
+  default:
+    cmds:
+      - task: build_generator_image
+    silent: true
+  build_generator_image:
+    silent: true
+    desc: Build the fake transactions generator image
+    cmds:
+      - >-
+        docker build --push -t {{.GENERATOR_IMAGE}} .
