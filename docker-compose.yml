@@ -26,7 +26,8 @@ services:
     volumes:
       - kafka-data:/tmp/kraft-combined-logs
   generator:
-    # image: ghcr.io/kameshsampath/datagen-cc-transactions
+    image: ghcr.io/kameshsampath/datagen-fake-transactions/generator
+    pull_policy: always
     build:
       context: .
     environment:

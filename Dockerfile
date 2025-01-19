@@ -13,11 +13,11 @@ USER me
 
 WORKDIR /app
 
-ENV HOME=/home/me \
-    PATH="${HOME}/.local/bin:${PATH}" \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH="/app/src:$PYTHONPATH"
+ENV HOME=/home/me
+ENV PATH="${HOME}/.local/bin:${PATH}"
+ENV PYTHONUNBUFFERED=1 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
 
 ADD requirements.txt /app/requirements.txt
 
@@ -27,4 +27,4 @@ RUN pip install --no-cache-dir --user -U pip  \
 COPY src .
 COPY scripts/generator.py /app/bin/entrypoint
 
-CMD [ "/bin/sh" ]
+CMD [ "/entrypoint","-help" ]
