@@ -1,0 +1,4 @@
+Faker
+python-dotenv
+ipykernel
+aiokafka
