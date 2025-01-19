@@ -19,9 +19,9 @@ logger = _logger("fake_tx_producer")
 
 
 def generate_transactions(
-    initial_timestamp: datetime = datetime(2019, 1, 1),
+    initial_timestamp: datetime = datetime(2025, 1, 1),
     time_increment: timedelta = timedelta(minutes=6),
-    fraud_probability: float = 0.01,  # 5% chance of fraudulent transactions
+    fraud_probability: float = 0.20,  # 20% chance of fraudulent transactions
 ) -> Generator[Dict[str, Union[int, datetime, float, bool]], None, None]:
     """
     Generate an infinite stream of credit card transactions with varied patterns

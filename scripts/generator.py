@@ -15,9 +15,16 @@ load_dotenv()
 logger = _logger("kafka_producer")
 
 
-async def send_message(producer: AIOKafkaProducer, topic, delay: int = 1):
+async def send_message(
+    producer: AIOKafkaProducer,
+    topic,
+    delay: int = 1,
+    fraud_probability: float = 0.20,
+):
     # Create transaction generator
-    transaction_generator = tx_producer.generate_transactions()
+    transaction_generator = tx_producer.generate_transactions(
+        fraud_probability=fraud_probability,
+    )
 
     # Generate transaction
     tx = next(transaction_generator)
@@ -48,6 +55,7 @@ async def produce_transactions(
     topic: str,
     delay: float = 1,
     bounds: int = -1,
+    fraud_probability: float = 0.20,
 ):
     """
     Asynchronously produce transactions to Kafka topic.
@@ -72,10 +80,20 @@ async def produce_transactions(
 
         if bounds == -1:
             while True:
-                await send_message(producer, topic, delay)
+                await send_message(
+                    producer,
+                    topic,
+                    delay,
+                    fraud_probability,
+                )
         else:
             for _ in range(bounds):
-                await send_message(producer, topic, delay)
+                await send_message(
+                    producer,
+                    topic,
+                    delay,
+                    fraud_probability,
+                )
 
     except KeyboardInterrupt:
         logger.warning("\nStopping transaction generation...")
@@ -106,14 +124,18 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "-t", "--topic", type=str, default="transactions", help="Kafka topic name"
+        "-t",
+        "--topic",
+        type=str,
+        default=os.getenv("KAFKA_TOPIC", "transactions"),
+        help="Kafka topic name",
     )
 
     parser.add_argument(
         "-b",
         "--bootstrap-servers",
         type=str,
-        default="localhost:9092",
+        default=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
         help="Kafka bootstrap servers",
     )
 
@@ -123,6 +145,14 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1.0,
         help="Delay between messages in seconds",
+    )
+
+    parser.add_argument(
+        "-p",
+        "--fraud-probability",
+        type=float,
+        default=0.20,
+        help="the fraud transaction probability when generating data",
     )
 
     return parser.parse_args()
@@ -136,5 +166,6 @@ if __name__ == "__main__":
             topic=args.topic,
             bootstrap_servers=args.bootstrap_servers,
             delay=args.delay,
+            fraud_probability=args.fraud_probability,
         )
     )
