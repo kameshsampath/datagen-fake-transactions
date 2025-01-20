@@ -3,6 +3,8 @@ import argparse
 import asyncio
 import json
 import os
+from datetime import datetime
+from typing import Dict, Generator
 
 from aiokafka import AIOKafkaProducer
 from dotenv import load_dotenv
@@ -16,16 +18,14 @@ logger = _logger("kafka_producer")
 
 
 async def send_message(
+    transaction_generator: Generator[
+        Dict[str, int | datetime | float | bool], None, None
+    ],
     producer: AIOKafkaProducer,
     topic,
     delay: int = 1,
     fraud_probability: float = 0.20,
 ):
-    # Create transaction generator
-    transaction_generator = tx_producer.generate_transactions(
-        fraud_probability=fraud_probability,
-    )
-
     # Generate transaction
     tx = next(transaction_generator)
 
@@ -78,9 +78,14 @@ async def produce_transactions(
         logger.info("Press Ctrl+C to stop")
         logger.info("-" * 80)
 
+        # Create transaction generator
+        transaction_generator = tx_producer.generate_transactions(
+            fraud_probability=fraud_probability,
+        )
         if bounds == -1:
             while True:
                 await send_message(
+                    transaction_generator,
                     producer,
                     topic,
                     delay,
@@ -89,6 +94,7 @@ async def produce_transactions(
         else:
             for _ in range(bounds):
                 await send_message(
+                    transaction_generator,
                     producer,
                     topic,
                     delay,
