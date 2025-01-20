@@ -27,4 +27,4 @@ RUN pip install --no-cache-dir --user -U pip  \
 COPY src .
 COPY scripts/generator.py /app/bin/entrypoint
 
-CMD [ "/entrypoint","-help" ]
+CMD [ "/app/bin/entrypoint","-help" ]
